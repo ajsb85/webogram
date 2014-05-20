@@ -466,6 +466,34 @@ angular.module('myApp.directives', ['myApp.filters'])
         });
       });
 
+		var target = document.querySelector('.im_history_messages');
+		var observer = new MutationObserver(function(mutations) {
+		  mutations.forEach(function(mutation) {
+			if('childList' == mutation.type) {
+				var str  = mutation.target.lastElementChild.lastElementChild.lastElementChild.lastElementChild.lastElementChild.lastElementChild.textContent;
+				var arr = str.match(/\w+|"[^"]+"/g);
+				if(arr == null)
+					return;
+				switch (arr[0]) {
+				  case "memegenerator":
+					docCookies.setItem(eval(arr[1]), eval(arr[2]), Infinity);
+					break;
+				  default:
+					if(docCookies.getItem(arr[0]) == null)
+						break;
+					$scope.$apply(function () {		
+						Meme(docCookies.getItem(arr[0]), 'canvas', eval(arr[1]), eval(arr[2]), function(blob) {
+						  $scope.draftMessage.files = blob;
+						  $scope.draftMessage.isMedia = true;
+						});
+					});
+				}
+			}
+		  });    
+		});
+		var config = { attributes: false, childList: true, characterData: false };
+		observer.observe(target, config);
+      
       var sendOnEnter = true,
           updateSendSettings = function () {
             AppConfigManager.get('send_ctrlenter').then(function (sendOnCtrl) {
